@@ -1,5 +1,5 @@
-install.packages("tibble")
-library(tibble)
+require(tibble)
+require(dplyr)
 
 # First we need to build the deck. The deck will be represented as a 
 # tibble with two rows: one for color (red, blue, green, yellow, wild)
@@ -31,9 +31,17 @@ for (i in 1:nplayers) {
 
 deal <- function(deck, players, hand=7) {
   for (j in 1:hand){
-    for (i in length(players)){
-      players[[i]] <- add_row(players[[i]], deck[1,])
-      deck[-c(1),] # remove dealt card from deck
+    for (i in 1:length(players)){
+      players[[i]] <- rbind(players[[i]], deck[1,])
+      deck <- deck[-c(1),] # remove dealt card from deck
     }
   }
+  return(players)
+}
+
+#bc my stack overflow game is weak and idk how to make an R function return >1 thing
+remove <- function(deck, players, hand=7) {
+  ndealt <- length(players)*hand
+  deck <- deck[-c(1:ndealt),]
+  return(deck)
 }

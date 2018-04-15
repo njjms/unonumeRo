@@ -1,3 +1,5 @@
+#!/usr/bin/Rscript
+
 require(tibble)
 require(dplyr)
 
@@ -24,7 +26,7 @@ for (q in 1:ngames){
   # Let's have a function to shuffle the deck
   
   shuffle <- function(deck) {
-    deck <- deck[sample(1:108, 108),]
+    deck <- deck[sample(1:dim(deck)[1], dim(deck)[1]),]
     return(deck)
   }
   
@@ -64,13 +66,13 @@ for (q in 1:ngames){
   
   while (TRUE) { # flip deck until we get a number card
     top <- deck[1,] 
+    discard <- rbind(top, discard)
     deck <- deck[-c(1),]
     if (top$color != 'wild'){
-      print(paste('First top card is a', top$color, top$card, sep=" "))
+      #print(paste('First top card is a', top$color, top$card, sep=" "))
       break
     } else {
-      discard <- rbind(top, discard)
-      print('Drawing another card.')
+      #print('Drawing another card.')
     }
   }
   
@@ -81,7 +83,7 @@ for (q in 1:ngames){
       if (top$color == 'wild') {
         newcolor <- sample(c('red', 'yellow', 'blue', 'green'), 1)
         top$color <- newcolor
-        print(paste('Uncaught wild card. Color changed to', top$color, sep=" "))
+        #print(paste('Uncaught wild card. Color changed to', top$color, sep=" "))
       }
       
       if (dim(players[[i]][players[[i]]$color == top$color,])[1] > 0) {
@@ -90,7 +92,7 @@ for (q in 1:ngames){
         top <- players[[i]][players[[i]]$color == top$color,][1,]
         players[[i]][players[[i]]$color == top$color,][1,]$color <- 'used'
         players[[i]] <- players[[i]] %>% filter(color != 'used')
-        print(paste('player', i, top$color, top$card, sep = " "))
+        #print(paste('player', i, top$color, top$card, sep = " "))
         
       } else if (dim(players[[i]][players[[i]]$card == top$card,])[1] > 0) {
         
@@ -98,16 +100,16 @@ for (q in 1:ngames){
         top <- players[[i]][players[[i]]$card == top$card,][1,]
         players[[i]][players[[i]]$card == top$card,][1,]$color <- 'used'
         players[[i]] <- players[[i]] %>% filter(color != 'used')
-        print(paste('player', i, top$color, top$card, sep = " "))
+        #print(paste('player', i, top$color, top$card, sep = " "))
         
       } else if (dim(players[[i]][players[[i]]$color == 'wild',])[1] > 0) {
         
         discard <- rbind(discard, top)
-        print(paste('player', i, top$color, top$card, sep = " "))
+        #print(paste('player', i, top$color, top$card, sep = " "))
         newcolor <- sample(c('red', 'blue', 'yellow', 'green'), 1)
         top <- players[[i]][players[[i]]$color == 'wild',][1,]
         top$color <- newcolor
-        print(paste('player', i, 'uses wild to change to', top$color, sep = " "))
+        #print(paste('player', i, 'uses wild to change to', top$color, sep = " "))
         players[[i]][players[[i]]$card == 'wild',][1,]$color <- 'used'
         players[[i]] <- players[[i]] %>% filter(color != 'used')
         
@@ -117,7 +119,7 @@ for (q in 1:ngames){
           
           deck <- deck[complete.cases(deck),]
           
-          if (dim(deck)[1] == 1){
+          if (dim(deck)[1] == 0){
             
             print('Run out of cards in the deck. Have to reshuffle the deck.')
             discard <- discard[complete.cases(discard),]
@@ -133,10 +135,10 @@ for (q in 1:ngames){
           while (TRUE) {
             drawn <- deck[1,]
             deck <- deck[c(-1),]
-            print(paste('Player', i, 'draws 1 card from the deck', sep = " "))
+            #print(paste('Player', i, 'draws 1 card from the deck', sep = " "))
             
             if (is.na(drawn$color)){
-              print(paste('Player', i, 'drew NA. Redrawing from deck.', sep = " "))
+              #print(paste('Player', i, 'drew NA. Redrawing from deck.', sep = " "))
               discard <- rbind(discard, drawn)
               next
             }
@@ -148,30 +150,30 @@ for (q in 1:ngames){
             
             discard <- rbind(top, discard)
             top <- drawn
-            print(paste('player', i, 'placed', top$color, top$card, sep=" "))
+            #print(paste('player', i, 'placed', top$color, top$card, sep=" "))
             break
             
           } else if (drawn$color == 'wild') {
             
             discard <- rbind(top, discard)
             top <- drawn
-            print(paste('player', i, 'placed wild ', top$card, sep=" "))
+            #print(paste('player', i, 'placed wild ', top$card, sep=" "))
             newcolor <- sample(c('red', 'blue', 'green', 'yellow'), 1)
             top$color <- newcolor
-            print(paste('player', i, 'wild card changed to', top$color, sep = " "))
+            #print(paste('player', i, 'wild card changed to', top$color, sep = " "))
             break
             
           } else {
             
             players[[i]] <- rbind(players[[i]], drawn)
-            print(paste('Card drawn(',drawn$color, drawn$card, ') can\'t be played.', sep = " "))
+            #print(paste('Card drawn(',drawn$color, drawn$card, ') can\'t be played.', sep = " "))
             
           }
         }
       }
       
       if (dim(players[[i]])[1] == 1) {
-        print(paste("Player", i, "has Uno!", sep = " "))
+        #print(paste("Player", i, "has Uno!", sep = " "))
       }
       
       turns <- turns + 1
@@ -186,7 +188,7 @@ for (q in 1:ngames){
 
   }
   
-  print(players)
+  print(paste("Game number: ", q))
   print(paste('There were', turns, 'turns', sep = " "))
   data[q] <- turns
   
@@ -196,6 +198,8 @@ table <- tibble(games = 1:ngames, turns = as.vector(data))
 require(ggplot2)
 ggplot(data = table, aes(turns)) + geom_density(color = 'black', fill = 'light green', alpha = .8) + ggtitle('1000 Simulated Uno Games')
 
+ggsave('finalplot.pdf')
+print('All done!')
 table %>% summarise(mean = mean(turns), median = median(turns))
 
 
